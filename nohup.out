@@ -1,0 +1,41 @@
+
+> dev
+> vite "-"
+
+
+  VITE v4.4.9  ready in 1004 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+  LARAVEL v10.19.0  plugin v0.8.0
+
+  ➜  APP_URL: http://localhost
+19:27:18 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:27:47 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:29:37 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:29:45 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:33:30 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:34:09 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:34:16 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:34:23 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+
+> dev
+> vite "-"
+
+
+  VITE v4.4.9  ready in 1149 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+
+  LARAVEL v10.19.0  plugin v0.8.0
+
+  ➜  APP_URL: http://localhost
+19:42:01 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:42:10 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:42:40 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:43:21 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:43:30 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:44:48 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css
+19:47:50 [vite] hmr update /resources/js/Pages/Home.vue, /resources/css/app.css

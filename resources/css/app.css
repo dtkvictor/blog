@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+  
+html, body, #app {
+    width: 100%;
+    height: 100%;
+}
+
+
+input:focus, input:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/*class*/
+
+.container-absolute {
+    background-color: rgba(0,0,0,.5);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 500;    
+}
+
+/*Vue animate*/
+.v-enter-active, .v-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.v-enter-from, .v-leave-to {
+    opacity: 0;
+}
