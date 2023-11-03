@@ -10,108 +10,88 @@ use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use App\Http\Helpers\Logs;
 use App\Http\Resources\CategoryCollection;
+use App\Http\Helpers\Generic;
 
 class CategoryController extends Controller
-{
+{      
+    /**
+     * Lists the categories and returns a json.
+     */    
+    public function list()
+    {
+        $categories = Category::get();
+        return new CategoryCollection($categories);
+    } 
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, string $any = '')
     {
-        $categories = new CategoryRepository(new Category()); 
-        $categories = $categories->filterBy($request->all());                
-        return new CategoryCollection($categories->get());
-    }
+        $filters = Generic::stringToArrayAssociative($any);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render("Category/Form", [
-            "method" => "post"
+        if(!isset($filters['orderBy'])) {
+            $filters['orderBy'] = 'created';
+        }
+
+        $categories = new CategoryRepository(new Category()); 
+        $categories = $categories->filterBy($filters);
+        $categories = $categories->paginate(10)
+                                 ->onEachSide(1);
+
+        return Inertia::render('Category/Index', [
+            'response' => $categories
         ]);
-    }
+    }        
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'required|string'
-        ]);
-
-        if($validator->fails()) {
-            return ApiResponse::unprocessableEntity(
-                $validator->errors()
-            );
-        }
+        ]);        
 
         $category = new Category(); 
-        $category->name = $request->input('name');
-        $category->description = $request->input('description');
+        $category->name = $request->name;
+        $category->description = $request->description;
         $category->save();
         
-        Logs::create(Category::class, "create new category");
-        return ApiResponse::created("Successfully created category");
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Category $category)
-    {
-        $category = $category->with('posts')->get();
-
-        return Inertia::render('Category/Show', [
-            'category' => $category            
-        ]);                
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Category $category)
-    {
-        return Inertia::render("Category/Form", [
-            "method" => "put"
-        ]);
-    }
+        Logs::create(Category::class, "create new category");        
+    }    
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:categories,name',
-            'description' => 'required|string'
-        ]);
-
-        if($validator->fails()) {
-            return ApiResponse::unprocessableEntity(
-                $validator->errors()
-            );
+    public function update(Request $request, int $id)
+    {        
+        if(!$category = Category::find($id)) {            
+            return back()->withErrors(['erro' => 'Category not found']);
         }
 
-        $category = new Category(); 
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name',
+            'description' => 'required|string'
+        ]);                
+
         $category->name = $request->input('name');
         $category->description = $request->input('description');
         $category->save();
         
-        Logs::update(Category::class, "Updated the id: $category->id category");
-        return ApiResponse::success("Successfully updated category");
+        Logs::update(Category::class, "Updated the id: $category->id category");        
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
-    {        
+    public function destroy(int $id)
+    {                   
+        if(!$category = Category::find($id)) {
+            return back()->withErrors(['erro' => 'Category not found']);
+        } 
         $category->delete();
         Logs::delete(Category::class, "delete the id: $category->id category");
-        return ApiResponse::noContent("Sucessfully deleted category");
     }
 }

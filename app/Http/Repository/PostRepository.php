@@ -5,26 +5,21 @@ use App\Models\Category;
 use App\Models\User;
 
 class PostRepository extends Repository 
-{    
-    public function filterByTitle(string $title) 
-    {
-        $words = preg_split('/(\-|\s+)/', $title);        
-        $model = $this->model->where('title', $title);
-        foreach($words as $word) {
-            $model = $model->orWhere("title", "LIKE", "%$word%");
-        }                        
-        return $model;
-    }
-
-    public function filterBySlug(string $slug)
-    {
-        return $this->model->where("slug", "LIKE", "%$slug%");
-    }
-
+{        
     public function filterByAuthor(string $author) 
-    {
-        $author = User::where('slug', $author)->first();
-        return $this->model->where("user", $author->id ?? 0);
+    {        
+        $model = $this->model;
+        $authors = User::where('slug', $author)->whereHas('post')->get();
+
+        if($authors->count() < 1) {
+            $model = $model->where('user', 0);
+        } 
+
+        foreach ($authors as $author) {            
+            $model = $model->where("user", $author->id);
+        }
+
+        return $model;
     }
     
     public function filterByCategory(string $category)
@@ -33,13 +28,31 @@ class PostRepository extends Repository
         return $this->model->where('category', $category->id ?? 0);
     }
 
+    public function filterByTitle(string $title)
+    {
+        return $this->supportFilterByString('title', $title);
+    }
+
+    public function filterOrderBy(string $key)
+    {
+        $suported = [
+            'title' => ['title', 'ASC'],            
+            'relevance' => ['likes_count', 'DESC'],
+        ];
+        if($key == 'relevance') {
+            $this->model = $this->model->withCount('likes');
+        }        
+        return $this->supportFilterOrderBy($suported, $this->model, $key);
+    }
+
     protected function addSuportedFilters(): array
     {
         return [            
             'slug' => 'filterBySlug',
             'title' => 'filterByTitle',
             'author' => 'filterByAuthor',
-            'category' => 'filterByCategory'
+            'category' => 'filterByCategory',
+            'orderBy' => 'filterOrderBy',
         ];
     }
 

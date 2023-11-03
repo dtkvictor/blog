@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\Route;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -36,8 +37,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $route = Route::current();        
         return array_merge(parent::share($request), [
             'auth' => auth()->user() ?? false,
+            'current_page' => $route->getName(),
         ]);
     }
 }

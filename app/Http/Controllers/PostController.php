@@ -15,49 +15,66 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Helpers\Generic;
 
 class PostController extends Controller
-{
+{    
+    public function my(Request $request, $any = '')
+    {
+        $filters = Generic::stringToArrayAssociative($any);
+
+        if(!isset($filters['orderBy'])) {
+            $filters['orderBy'] = 'created';
+        }
+        
+        $posts = new PostRepository(new Post());                
+        $posts = $posts->filterBy($filters)
+                       ->where('user', auth()->user()->id)
+                       ->paginate(10)
+                       ->onEachSide(1)
+                       ->withQueryString();
+                        
+        return Inertia::render('Post/My', [
+            'response' => $posts
+        ]);        
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request, $any = '')
-    {                                
-        $request->merge(
-            Generic::stringToArrayAssociative($any)
-        );        
-        
-        $posts = new PostRepository(new Post());                
-        $posts = $posts->filterBy($request->all());
-        $posts = $posts->with('user')->paginate(10);        
+    {                                           
+        $filters = Generic::stringToArrayAssociative($any);
 
-        return Inertia::render('Home', [
-            'response' => $posts
+        if(!isset($filters['orderBy'])) {
+            $filters['orderBy'] = 'created';
+        }
+
+        $posts = new PostRepository(new Post());
+        $posts = $posts->filterBy($request->all());
+        $posts = $posts->orderBy('updated_at', 'desc')
+                        ->with('user')
+                        ->withCount('likes')
+                        ->paginate(10)
+                        ->onEachSide(1);                        
+
+        return Inertia::render('Post/Index', [
+            'response' => $posts,
+            'success' => $request->session()->pull('success', false),
+            'error' => $request->session()->pull('error', false)
         ]);
-    }
+    }    
 
     /**
      * Display the specified resource.
      */
     public function show(string $slug)
     {                        
-        if(!$post = Post::where('slug', $slug)->first()) return abort(404);        
-        $post->related();
-        $post->like();
+        if(!$post = Post::where('slug', $slug)->first()) return abort(404);
+        $post->like();        
+        $post->related(); 
         
         return Inertia::render('Post/Show', [
             'post' => $post
         ]);        
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('Post/Form', [
-            'category' => Category::get(),
-            'method' => 'post'                       
-        ]);
-    }
+    }    
 
     /**
      * Store a newly created resource in storage.
@@ -67,79 +84,81 @@ class PostController extends Controller
         $request->validate([
             'title' => "required|string|max:500",
             'content' => "required|string",
-            'category' => "required|exists:categories.id",
+            'category' => "required|exists:App\Models\Category,id",
             'thumb' => "required|image"
         ]);
 
         $post = new Post();
         $post->user = auth()->user()->id;
-        $post->title = $request->input("title");
-        $post->content = $request->input("content");        
+        $post->title = $request->title;
+        $post->content = $request->content;
         $post->thumb = $request->file('thumb')->store('posts/thumb');
+        $post->category = $request->category;
         $post->save();
         
-        Logs::create(Post::class, "Create new post");
-        return to_route('post.show', ['slug', $post->slug]);
-    }    
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        return Inertia::render('Post/Form', [
-            'post' => $post,
-            'category' => Category::get(),            
-            'method' => 'put'
-        ]);
-    }
+        Logs::create(Post::class, "Create new post");        
+    }        
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post)
+    public function update(Request $request, int $post)
     {
-        $validator = Validator::make($request->all(), [
+        if(!$post = Post::find($post)) {
+            return back()->withErrors(['erro' => 'Post not found']);
+        }        
+
+        if($post->user != auth()->user()->id) {
+            return back()->withErrors(['erro' => 'You do not have permission to update this post']);
+        }
+
+        $request->validate([
             'title' => "required|string|max:500",
             'content' => "required|string",
-            'category' => "required|exists:categories.id",
+            'category' => "required|exists:App\Models\Category,id",
             'thumb' => 'image'
         ]);
-        
-        if($validator->fails()) {
-            return ApiResponse::unprocessableEntity(
-                $validator->errors()
-            );
-        }                        
+                
         $data = $request->only(['title', 'content', 'category']);
+
         if($request->hasFile('thumb')) {
             if(Storage::exists($post->thumb)) {
                 Storage::delete($post->thumb);
             } 
             $data['thumb'] = $request->file('thumb')->store('posts/thumb');
         }
+
         $post->fill($data)->save();
 
-        Logs::update(Post::class, "Updated the id: $post->id post");
-        return ApiResponse::success("Successfully updated post");
+        Logs::update(Post::class, "Updated the id: $post->id post");        
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post)
+    public function destroy(Request $request, int $post)
     {        
+        if(!$post = Post::find($post)) {
+            return back()->withErrors(['erro' => 'Post not found']);
+        }
+
+        if($post->user != auth()->user()->id) {
+            return back()->withErrors([
+                'erro' => 'You do not have permission to delete this post.'
+            ]);
+        }        
+        
         $payload = [
             'id' => $post->id,
             'name' => $post->title
         ];
+
         Logs::delete("Deleted post: \n".json_encode($payload));
 
         if(Storage::exists($post->thumb)) {
             Storage::delete($post->thumb);
         }         
-        $post->delete();
 
-        return ApiResponse::noContent("Successfully updated post");
+        $post->delete();
     }
 }

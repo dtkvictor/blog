@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
@@ -24,6 +25,11 @@ class Post extends Model
     public function getCategoryAttribute()
     {
         return Category::find($this->attributes['category']);
+    }
+
+    public function getThumbAttribute()
+    {
+        return asset('storage/'.$this->attributes['thumb']);
     }
 
     public function user() 
@@ -47,15 +53,13 @@ class Post extends Model
 
     public function like()
     {
-        $user = auth()->user()->id ?? false;
-        if(!$user) {
-            $this->setAttribute('like', false);   
-        }else {
-            $like = Like::where('user', $user)
-                ->where('post', $this->attributes['id'])
-                ->count();
-            $this->setAttribute('like', $like);
-        }        
+        $like = $this->belongsToMany(Post::class, 'likes', 'user', 'post')->count();
+        $this->setAttribute('like', $like);
+    }
+
+    public function likes()
+    {        
+        return $this->hasMany(Like::class, 'post', 'id');
     }
 
     public function related(int $limit = 3)

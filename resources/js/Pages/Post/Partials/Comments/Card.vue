@@ -14,6 +14,11 @@
                     <span class="material-icons text-red-500 hover:drop-shadow-md active:scale-75" translate="no">delete</span>                                                                                         
                 </button>
             </div>
+            <div class="flex gap-3" v-else-if="auth && auth.admin">
+                <button class="flex justify-center items-center" @click="actionDelete(comment.id)">
+                    <span class="material-icons text-red-500 hover:drop-shadow-md active:scale-75" translate="no">delete</span>                                                                                         
+                </button>
+            </div>
         </div>                                            
     </div>                                                
 </template>
@@ -30,6 +35,9 @@
             auth() {
                 return this.$page.props.auth;
             }, 
+            show() {
+                return
+            }
         }
     }
 </script>

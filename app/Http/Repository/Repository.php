@@ -6,7 +6,9 @@ abstract class Repository
 {
     protected $model;
     protected array $supportedFilters = [
-        'id' => 'filterById'        
+        'id' => 'filterById',  
+        'slug' => 'filterBySlug',                
+        'date' => 'filterByDate',
     ];
     
     public function __construct(Model $model)
@@ -21,20 +23,52 @@ abstract class Repository
     protected function addSuportedFilters(): array
     {
         return [];
-    }
+    }    
 
     public function filterBy(array $filters) 
     {               
         foreach($this->supportedFilters as $key => $filter) {                            
             if(!isset($filters[$key])) continue;            
             $this->model = call_user_func([$this, $filter], $filters[$key]);
-        }
+        }        
         return $this->model;
     }
 
     public function filterById(int $id) 
     {
         return $this->model->where('id', $id);
+    }
+
+    public function filterBySlug(string $slug)
+    {
+        return $this->model->where('slug', $slug);
+    }    
+
+    public function filterByDate(string $date)
+    {
+        return $this->model->where('created_at', $date);
+    }    
+
+    protected function supportFilterByString(string $field, string $value)
+    {
+        $words = preg_split('/(\-|\s+)/', $value);        
+        $model = $this->model->where($field, $value);
+
+        foreach($words as $word) {
+            $model = $model->orWhere("title", "LIKE", "%$word%");
+        }                        
+        return $model;
+    }
+    
+    protected function supportFilterOrderBy(array $orderBySuported, object $model, string $key)
+    {
+        $suported = [            
+            'created' => ['created_at', 'DESC'],
+            'updated' => ['updated_at', 'DESC'],            
+            ...$orderBySuported
+        ];
+        if(!isset($suported[$key])) return $this->model;                        
+        return $model->orderBy(...$suported[$key]);        
     }
 
 }

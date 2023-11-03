@@ -12,7 +12,7 @@ class CommentsController extends Controller
 {        
 
     public function show(int $post) 
-    {
+    {        
         $comments = Comments::where('post', $post)->orderBy('created_at', 'desc')->paginate(10);
         if($comments) return new CommentsCollection($comments);
         return ApiResponse::noContent("");
@@ -72,13 +72,17 @@ class CommentsController extends Controller
      */
     public function destroy(int $id)
     {
-        $user = auth()->user()->id;
+        $user = auth()->user();
 
-        if(!$comment = Comments::where('user', $user)->find($id)) {
-            return ApiResponse::notFound("Comment not found");
+        if($user->admin && $comment = Comments::find($id)) {
+            $comment->delete();    
         }
-
-        $comment->delete();
+        else if($comment = Comments::where('user', $user)->find($id)) {
+            $comment->delete();            
+        }
+        else {
+            return ApiResponse::notFound("Comment not found");
+        }        
         return ApiResponse::noContent("Successfully deleted comment");
     }
 }

@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import ActionMessage from '@/Components/ActionMessage.vue';
 import FormSection from '@/Components/FormSection.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import iziToast from 'izitoast';
 
 const passwordInput = ref(null);
 const currentPasswordInput = ref(null);
@@ -18,11 +18,16 @@ const form = useForm({
 });
 
 const updatePassword = () => {
-    form.put(route('user-password.update'), {
-        errorBag: 'updatePassword',
+    form.put(route('profile.update.password'), {        
         preserveScroll: true,
-        onSuccess: () => form.reset(),
-        onError: () => {
+        onSuccess: () => { 
+            form.reset()
+            iziToast.success({
+                title: 'Sucesso!',
+                message: 'Senha atualizada com sucesso.'
+            })
+        },
+        onError: () => {            
             if (form.errors.password) {
                 form.reset('password', 'password_confirmation');
                 passwordInput.value.focus();
@@ -31,7 +36,7 @@ const updatePassword = () => {
             if (form.errors.current_password) {
                 form.reset('current_password');
                 currentPasswordInput.value.focus();
-            }
+            }            
         },
     });
 };
@@ -40,29 +45,28 @@ const updatePassword = () => {
 <template>
     <FormSection @submitted="updatePassword">
         <template #title>
-            Update Password
+            Atualizar senha
         </template>
 
         <template #description>
-            Ensure your account is using a long, random password to stay secure.
+            Certifique-se de que sua conta esteja usando uma senha longa e aleatória para permanecer segura.
         </template>
 
         <template #form>
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="current_password" value="Current Password" />
+                <InputLabel for="current_password" value="Senha atual" />
                 <TextInput
                     id="current_password"
                     ref="currentPasswordInput"
                     v-model="form.current_password"
                     type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="current-password"
+                    class="mt-1 block w-full"                    
                 />
                 <InputError :message="form.errors.current_password" class="mt-2" />
             </div>
 
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="password" value="New Password" />
+                <InputLabel for="password" value="Nova senha" />
                 <TextInput
                     id="password"
                     ref="passwordInput"
@@ -75,7 +79,7 @@ const updatePassword = () => {
             </div>
 
             <div class="col-span-6 sm:col-span-4">
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+                <InputLabel for="password_confirmation" value="Confirmar senha" />
                 <TextInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
@@ -87,13 +91,9 @@ const updatePassword = () => {
             </div>
         </template>
 
-        <template #actions>
-            <ActionMessage :on="form.recentlySuccessful" class="mr-3">
-                Saved.
-            </ActionMessage>
-
+        <template #actions>            
             <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Save
+                Atualizar
             </PrimaryButton>
         </template>
     </FormSection>

@@ -9,7 +9,11 @@
                         :comment="comment"
                         :actionDelete="alertDeleteComment"
                         :actionEdit="showModalEditComment"
-                    />                                            
+                    />
+                    <CardLoadingComment 
+                        v-if="lastPage > currentPage || storageComments.length < 1"                        
+                        amount="5"
+                    />    
                 </div>
                 <inputComment btnName="Enviar" @text="textComment = $event" :action="sendMessage"/>
             </template>
@@ -33,6 +37,11 @@
         </div>            
     </Modal>
 
+    <CardLoadingComment 
+        v-if="storageComments.length < 1" 
+        amount="5"
+    />    
+
     <CardComment 
         v-for="comment in getComments" 
         :key="comment.id"
@@ -50,22 +59,24 @@
     import CardComment from './Comments/Card.vue';
     import ModalComment from '@/Components/Post/Modal.vue';
     import InputComment from './Comments/Input.vue';
+    import CardLoadingComment from './Comments/CardLoading.vue'
     import Modal from '@/Components/Modal.vue';
     import { router } from '@inertiajs/vue3';
 
     export default {
-        components: { CardComment, InputComment, ModalComment, Modal },
+        components: { CardComment, InputComment, ModalComment, Modal, CardLoadingComment },
         props: ['postId'],        
         data: () => ({
             edit: {
-                show: false,                             
-                comment: '',
+                show: false,                                                      
+                comment: '',                
             },
             textComment: '',
-            showComments: false,                        
+            showComments: false,                                    
             storageComments: [],            
             currentPage: null,
             lastPage: null,               
+            block: false,
         }),        
         mounted() {
             this.loadComments();
@@ -78,7 +89,9 @@
         methods: {
             async loadComments() {                
                 let page = this.currentPage ? this.currentPage + 1 : 1;
-                if(this.lastPage && page > this.lastPage) return;                                
+                if(this.lastPage && page > this.lastPage) return; 
+                
+                this.block = true;
 
                 let response = await axios(route('comments.show', [this.postId, {page: page}]));
                 if(response.status == 200) {
@@ -86,11 +99,15 @@
                     this.lastPage = response.data.meta.last_page; 
                     this.storageComments = this.storageComments.concat(response.data.data);
                 }                
+                this.block = false;
             },
             lazyLoadComments(event) {
-                let max = event.target.scrollTopMax;
-                let current = event.target.scrollTop;
-                if(current == max) this.loadComments();
+                let max = (event.target.scrollTopMax - 300);
+                let current = event.target.scrollTop;       
+                                
+                if(!this.block && current >= max) {
+                    this.loadComments();                                   
+                }
             },            
             sendMessage() {
                 if(!this.$page.props.auth) return router.get(route('login'));
@@ -181,8 +198,7 @@
                         message: 'Comentário editado com sucesso.'
                     })
                 })
-                .catch((erro) => {
-                    console.log(erro)
+                .catch((erro) => {                    
                     this.$iziToast.error({
                         title: 'Erro',
                         message: 'Falha ao editar o comentário'

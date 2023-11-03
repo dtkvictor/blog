@@ -63,7 +63,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
-    ];
+    ];    
 
     public function setNameAttribute($value)
     {        
@@ -72,18 +72,37 @@ class User extends Authenticatable
     }
 
     public function setPasswordAttribute($value)
+    {        
+        $this->attributes['password'] = bcrypt($value);
+    }
+
+    public function setPictureAttribute($value)
     {
-        $this->attributes['password'] = sha1($value);
-    }            
+        $picture = $this->attributes['picture'] ?? null;
+
+        if(!empty($picture) && Storage::exists($picture)) {
+            Storage::delete($picture);
+        }
+
+        $this->attributes['picture'] = $value;
+    }
 
     public function getPictureAttribute()
     {
-        if(empty($this->attributes['picture'])) return '/storage/defaultProfile.jpeg';
-        return $this->attributes['picture'];
+        if(empty($this->attributes['picture'])) { 
+            return asset('assets/image/profile.jpg');
+        }
+        return 'storage/'.$this->attributes['picture'];
     }
 
     public function post() 
     {
         return $this->hasMany(Post::class, 'user', 'id');
     }
+    
+    public function liked()
+    {        
+        return $this->belongsToMany(Post::class, 'likes', 'user', 'id');
+    }
+
 }

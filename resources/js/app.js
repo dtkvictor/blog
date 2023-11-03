@@ -5,9 +5,9 @@ import 'izitoast/dist/css/iziToast.min.css';
 
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
+import { createPinia } from 'pinia';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy/dist/vue.m';
-import iziToast from 'izitoast';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -15,10 +15,10 @@ createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) });
-            app.config.globalProperties.$iziToast = iziToast;
-            app.use(plugin)
-               .use(ZiggyVue)
+        const app = createApp({ render: () => h(App, props) });                  
+            app.use(createPinia())
+               .use(plugin)
+               .use(ZiggyVue)               
                .mount(el);
             return app
     },

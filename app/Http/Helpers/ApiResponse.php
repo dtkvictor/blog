@@ -6,11 +6,12 @@ use Illuminate\Http\Response;
 
 class ApiResponse {
 
-    public static function success(string $message)
+    public static function success(string $message, $data = [])
     {
         return response()->json([
             "type" => "Success",
-            "message" => $message
+            "message" => $message,
+            "data" => $data,
         ]);
     }
 
@@ -31,7 +32,7 @@ class ApiResponse {
         ], Response::HTTP_NO_CONTENT);
     }
 
-    public static function notFound($message) 
+    public static function notFound($message = '') 
     {
         return response()->json([
             "type" => "Error",

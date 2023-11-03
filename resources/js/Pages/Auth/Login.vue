@@ -34,10 +34,7 @@ const submit = () => {
 
     <AuthenticationCard>
         <div class="w-full flex justify-between">
-            <h1 class="text-3xl mb-3 font-light">Log In</h1>
-            <Link :href="route('post.index')">
-                <span class="material-icons" translate="no">home</span>
-            </Link>
+            <h1 class="text-3xl mb-3 font-light">Log In</h1>            
         </div>
         <div v-if="fails" class="mb-4 font-medium text-sm text-red-600">
             {{ fails }}
