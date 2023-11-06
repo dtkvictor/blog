@@ -55,7 +55,7 @@ abstract class Repository
         $model = $this->model->where($field, $value);
 
         foreach($words as $word) {
-            $model = $model->orWhere("title", "LIKE", "%$word%");
+            $model = $model->orWhere($field, "LIKE", "%$word%");
         }                        
         return $model;
     }

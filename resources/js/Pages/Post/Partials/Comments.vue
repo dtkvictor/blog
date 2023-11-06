@@ -1,211 +1,107 @@
 <template>
-    <Transition>
-        <ModalComment :showModal="showComments" @closeModal="showComments = false" title="Comentários: ">
-            <template v-slot:content>
-                <div class="overflow-y-auto overflow-x-hidden h-3/4 px-3" @scroll="lazyLoadComments($event)">
-                    <CardComment 
-                        v-for="comment in storageComments" 
-                        :key="comment.id" 
-                        :comment="comment"
-                        :actionDelete="alertDeleteComment"
-                        :actionEdit="showModalEditComment"
-                    />
-                    <CardLoadingComment 
-                        v-if="lastPage > currentPage || storageComments.length < 1"                        
-                        amount="5"
-                    />    
-                </div>
-                <inputComment btnName="Enviar" @text="textComment = $event" :action="sendMessage"/>
-            </template>
-        </ModalComment>        
-    </Transition>        
-    <Modal :show="edit.show">                        
-        <div class="w-full h-full flex flex-col p-3  gap-3">                    
-            <div class="w-full flex items-center justify-between">                    
-                <p>{{ edit.comment.user.name }}</p>
-                <button class="material-icons" @click="edit.show = false">close</button>
-            </div>
-            <div class="w-full flex items-center justify-center gap-3">
-                <img class="w-[60px] h-[60px] rounded-full" :src="edit.comment.user.picture">
-                <inputComment 
-                    btnName="Editar" 
-                    @text="edit.comment.text = $event"
-                    :default="edit.comment.text"
-                    :action="editComment"
-                />
-            </div>
-        </div>            
-    </Modal>
-
-    <CardLoadingComment 
-        v-if="storageComments.length < 1" 
-        amount="5"
-    />    
+    <AllComments 
+        :postId="postId" 
+        :show="data.showComments" 
+        :auth="auth"
+        @close="closeModalComments"
+        @editComment="openEditComment($event)"
+        @deleteComment="openDeleteComment($event)"
+    />
 
     <CardComment 
-        v-for="comment in getComments" 
+        v-for="comment in comments"
         :key="comment.id"
-        :comment="comment"
-        :actionDelete="alertDeleteComment"
-        :actionEdit="showModalEditComment"
+        :comment="comment"        
+        :auth="auth"
+        @editComment="openEditComment($event)"
+        @deleteComment="openDeleteComment($event)"
     />
-    <inputComment btnName="Enviar" :text="textComment" @text="textComment = $event" :action="sendMessage" />
-    <button class="underline" @click="showComments = true">
+
+    <InputComment 
+        btnName="Enviar"                 
+        method="post"
+        :postId="postId"
+        :routeName="route('comments.create')"        
+    />
+
+    <EditComment 
+        :show="data.editComment.show"
+        :comment="data.editComment.comment"
+        @close="closeEditComment"
+    />
+    
+    <DeleteComment 
+        messageSuccess="Comentário apagado com sucesso!"
+        messageFails="Falha ao apagar o comentário"
+        :show="data.deleteComment.show"        
+        :showButton="false"        
+        :preserveScroll="true"
+        :routeName="route('comments.destroy', data.deleteComment.comment ?? 0)"
+        @close="closeDeleteComment"
+    >
+        <template #title>
+            <h1 class="text-3xl mb-3 font-light">Apagar comentário</h1>
+        </template>
+        <template #content>
+            Após confirmar, <b>essa ação não poderá ser desfeita</b>, você realmente deseja
+            apagar esse comentário?
+        </template>
+    </DeleteComment>
+
+    <button class="underline" @click="openModalComments">
         Exibir mais
     </button>
 </template>
 
-<script>
-    import CardComment from './Comments/Card.vue';
-    import ModalComment from '@/Components/Post/Modal.vue';
-    import InputComment from './Comments/Input.vue';
-    import CardLoadingComment from './Comments/CardLoading.vue'
-    import Modal from '@/Components/Modal.vue';
-    import { router } from '@inertiajs/vue3';
+<script setup>
+    import CardComment from './Comments/Card.vue';    
+    import InputComment from './Comments/Input.vue';            
+    import AllComments from './Comments/AllComments.vue';
+    import EditComment from './Comments/EditComment.vue';
+    import DeleteComment from '@/Components/Actions/Delete.vue';
+    import { reactive } from 'vue';
 
-    export default {
-        components: { CardComment, InputComment, ModalComment, Modal, CardLoadingComment },
-        props: ['postId'],        
-        data: () => ({
-            edit: {
-                show: false,                                                      
-                comment: '',                
-            },
-            textComment: '',
-            showComments: false,                                    
-            storageComments: [],            
-            currentPage: null,
-            lastPage: null,               
-            block: false,
-        }),        
-        mounted() {
-            this.loadComments();
+    const props = defineProps({
+        comments: Object,        
+        postId: Number,   
+        auth: { type: Object, required: true }
+    });
+
+    const data = reactive({
+        showComments: false,      
+        editComment: {
+            show: false,
+            comment: {}
         },
-        computed: {            
-            getComments() {
-                return this.storageComments.slice(0, 5);
-            }
-        },
-        methods: {
-            async loadComments() {                
-                let page = this.currentPage ? this.currentPage + 1 : 1;
-                if(this.lastPage && page > this.lastPage) return; 
-                
-                this.block = true;
+        deleteComment: {
+            show: false,
+            comment: null 
+        }
+    });
 
-                let response = await axios(route('comments.show', [this.postId, {page: page}]));
-                if(response.status == 200) {
-                    this.currentPage = response.data.meta.current_page;
-                    this.lastPage = response.data.meta.last_page; 
-                    this.storageComments = this.storageComments.concat(response.data.data);
-                }                
-                this.block = false;
-            },
-            lazyLoadComments(event) {
-                let max = (event.target.scrollTopMax - 300);
-                let current = event.target.scrollTop;       
-                                
-                if(!this.block && current >= max) {
-                    this.loadComments();                                   
-                }
-            },            
-            sendMessage() {
-                if(!this.$page.props.auth) return router.get(route('login'));
-                if(!this.textComment) return;
-
-                axios.post(route('comments.store'), {
-                    text: this.textComment,
-                    post: this.postId
-                })
-                .then(response => {                    
-                    this.$iziToast.success({
-                        title: 'Sucesso',
-                        message: 'Comentário enviado com sucesso.'
-                    });
-                    this.storageComments.unshift(response.data.data)
-                })
-                .catch(error => {                    
-                    this.$iziToast.error({
-                        title: "Erro",
-                        message: "Falha ao enviar o comentário."
-                    })
-                })   
-                this.textComment = '';
-            },           
-            alertDeleteComment(commentId) {                               
-                const deleteComment = this.deleteComment;
-                return this.$iziToast.question({
-                    timeout: 20000,
-                    close: false,
-                    overlay: true,
-                    displayMode: 'once',
-                    id: commentId,
-                    zindex: 999,
-                    title: 'Aviso',
-                    message: 'Deseja mesmo apagar esse comentário?',
-                    position: 'center',
-                    buttons: [
-                        ['<button><b>YES</b></button>', 
-                        function (instance, toast) {
-                            deleteComment(commentId);
-                            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-                        }, true],
-                        ['<button>NO</button>', 
-                        function (instance, toast) {
-                            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-                        }],
-                    ]                    
-                });
-            },
-            deleteComment(commentId) {
-                if(this.storageComments.length <= 5) this.loadComments();
-
-                axios.delete(route('comments.destroy', commentId))
-                    .then(() => {
-                        this.storageComments = this.storageComments.filter(
-                            comment => comment.id != commentId
-                        );
-                        this.$iziToast.success({
-                            title: 'Sucesso',
-                            message: 'Comentário deletado com sucesso.'
-                        })
-                    })
-                    .catch(() => {
-                        this.$iziToast.error({
-                            title: 'Erro',
-                            message: 'Não foi possível deletar esse comentário.'
-                        })
-                    })
-            },
-            showModalEditComment(comment) {
-                this.edit.show = true;
-                this.edit.comment = comment;
-            },
-            editComment() {                
-                axios.patch(route('comments.update', this.edit.comment.id), {
-                    text: this.edit.comment.text
-                })
-                .then(() => {
-                    let index = this.storageComments.findIndex(
-                        comment => comment.id == this.edit.comment.id
-                    );  
-                    this.storageComments[index].text = this.edit.comment.text;
-                    this.edit.show = false;                              
-                    this.edit.comment = '';
-
-                    this.$iziToast.success({
-                        title: 'Sucesso',
-                        message: 'Comentário editado com sucesso.'
-                    })
-                })
-                .catch((erro) => {                    
-                    this.$iziToast.error({
-                        title: 'Erro',
-                        message: 'Falha ao editar o comentário'
-                    })
-                });                
-            } 
-
-        }        
+    const openModalComments = () => {
+        data.showComments = true;
     }
+
+    const closeModalComments = () => {
+        data.showComments = false;
+    }
+
+    const openEditComment = (comment) => {
+        data.editComment.show = true;
+        data.editComment.comment = comment;
+    } 
+
+    const closeEditComment = () => {
+        data.editComment.show = false;
+    } 
+
+    const openDeleteComment = (comment) => {
+        data.deleteComment.show = true;
+        data.deleteComment.comment = comment.id;
+    } 
+
+    const closeDeleteComment = () => {
+        data.deleteComment.show = false;
+    } 
 </script>

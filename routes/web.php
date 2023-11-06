@@ -46,18 +46,20 @@ Route::middleware([Authenticate::class, AdminAccess::class])->group(function() {
         Route::match(['put', 'patch'], 'update/{id}', 'update')->name('user.update');
         Route::delete('destroy/{id}', 'destroy')->name('user.destroy');
     });    
-    
-    //Route::resource('user', UserController::class)->names('user');
-    //Route::get('user/filter/{any?}', [UserController::class, 'index'])->name('user.filter');
 });
 
 Route::middleware(Authenticate::class)->group(function() {
-    Route::resource('comments', CommentsController::class)->names('comments');    
+    Route::prefix('comments')->controller(CommentsController::class)->group(function() {
+        Route::post('create', 'store')->name('comments.create');
+        Route::match(['put', 'patch'], 'update/{id}', 'update')->name('comments.update');
+        Route::delete('destroy/{id}', 'destroy')->name('comments.destroy');
+    });    
+
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('profile/update', [ProfileController::class, 'updateData'])->name('profile.update');
     Route::put('profile/update/password', [ProfileController::class, 'updatePassword'])->name('profile.update.password');
-    Route::delete('profile/delete', [ProfileController::class, 'destroy'])->name('profile.destroy');        
-    Route::post('like', [LikeController::class, 'store'])->name('like');    
+    Route::delete('profile/delete', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('like', [LikeController::class, 'store'])->name('like');
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 });
 

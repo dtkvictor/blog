@@ -8,7 +8,6 @@ use App\Http\Repository\UserRepository;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Rules\ComparePassword;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Helpers\Generic;
 
@@ -67,10 +66,11 @@ class UserController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->admin = $request->admin;
+        
         $user->save();    
     }
 
-    public function delete(int $id) 
+    public function destroy(int $id) 
     {
         if(!$user = User::find($id)) {
             return back()->withErrors([

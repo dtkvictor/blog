@@ -1,8 +1,11 @@
 <template>
-    <button :class="['bg-red-500 flex justify-center itens-center p-3 shadow', btnClass]" @click="openActionModal">
+    <button 
+        v-if="showButton"
+        :class="['bg-red-500 flex justify-center itens-center p-3 shadow', btnClass]" 
+        @click="openActionModal">
         <span class="material-icons" translate="no">delete</span>
     </button>
-    <DialogModal :show="data.showActionModal" @close="closeActionModal">
+    <DialogModal :show="showActionModal" @close="closeActionModal">
         <template #title>
             <slot name="title"></slot>
         </template>
@@ -27,32 +30,44 @@
     import DangerButton from '@/Components/DangerButton.vue';
     import SecondaryButton from '@/Components/SecondaryButton.vue';
     import iziToast from 'izitoast';
-    import { reactive } from 'vue';
+    import { reactive, defineEmits, computed } from 'vue';
 
     const props = defineProps({
         btnClass: String,
         routeName: String,            
         messageSuccess: String,
-        messageFails: String,            
-    })
+        messageFails: String,  
+        preserveScroll: { type: Boolean, default: false },   
+        show: { type: Boolean },
+        showButton: { type: Boolean, default: true }        
+    });
+
+    const emit = defineEmits(['success', 'fails', 'close']);
 
     const data = reactive({
         showActionModal: false,
-    })
+    });
 
     const openActionModal = () => {
         data.showActionModal = true;
-    } 
+    }
 
     const closeActionModal = () => {
         data.showActionModal = false;
+        emit('close');
     } 
+
+    const showActionModal = computed(() => {
+        if(props.show || data.showActionModal) return true;
+        return false;
+    })
 
     const success = () => {
         iziToast.success({
             title: 'Sucesso!',
             message: props.messageSuccess ?? ''
         });
+        emit('success')
         closeActionModal()
     }
 
@@ -61,12 +76,16 @@
             title: 'Erro!',
             message: response.erro
         });
+        emit('fails')
         closeActionModal()
     }
+
     const actionDelete = () => {                
-        router.delete(props.routeName, {                    
+        router.delete(props.routeName, {
+            preserveScroll: props.preserveScroll,            
             onSuccess: () => success(),
             onError: response => fails(response)
         });
     }    
+
 </script>

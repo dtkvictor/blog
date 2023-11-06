@@ -1,22 +1,36 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 
-const categories = ( await axios.get(route('api.category')) ).data.data;
-const authories = ( await axios.get(route('api.author')) ).data.data;
+const fetchCategories = async () => {
+    const response = await axios.get(route('api.category'));    
+    const category = await response.data.data;
+    return category;
+}
+
+const fetchAuthories = async () => {
+    const response = await axios.get(route('api.author'));    
+    const author = await response.data.data;
+    return author;
+}
 
 export default defineStore('store', {
-    state: () => ({
-        categories: categories,
-        authories: authories,
+    state: () => ({        
+        categories: [],
+        authories: [],
     }),
     actions: {
-        addCategory(category) {
-            this.categories.push(category)
+        async fetchData() {
+            if(this.categories.length < 1) this.categories = await fetchCategories();
+            if(this.authories.length < 1) this.authories = await fetchAuthories();
         },
-        removeCategory(remove) {
-            this.categories = this.categories.filter(
-                category => category.id != remove.id
-            )
+        async refreshCategory() {
+            this.categories = await fetchCategories();
+        },
+        updateCategory(update) {                        
+            const index = this.categories.findIndex(category => category.id == update.id);            
+            if(this.categories[index]) {
+                this.categories[index] = update;
+            }
         }
     },
     getters: {

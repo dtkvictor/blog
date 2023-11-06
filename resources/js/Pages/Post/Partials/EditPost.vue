@@ -3,7 +3,12 @@
         <span class="material-icons" translate="no">edit</span>
     </button>
     <Modal :show="showModalEdit" @close="showModalEdit = false">
-        <Form :post="post" method="put" :routeName="route('post.update', post.id)">
+        <Form 
+            method="put"
+            success="Postagem atualizada com sucesso!"
+            :post="post"            
+            :routeName="route('post.update', post.id)"
+        >
             <template #header>
                 <div class="w-full flex justify-between items-center">
                     <h1 class="text-3xl mb-3 font-light">Editar postagem</h1>                    
@@ -23,7 +28,7 @@
         components: { Modal, Form },
         props: ['btnClass', 'post'],
         data: () => ({
-            showModalEdit: false,
-        }),
+            showModalEdit: false,            
+        })        
     }
 </script>

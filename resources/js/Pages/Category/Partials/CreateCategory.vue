@@ -7,9 +7,9 @@
             method="post" 
             :routeName="route('category.store')"
             :category="[]"             
-            :success="success" 
-            :fails="fails"
+            :success="success"
             :clear="true"
+            @created="store.refreshCategory()"
         >
             <template #header>
                 <div class="w-full flex justify-between items-center">
@@ -27,6 +27,9 @@ import Modal from '@/Components/Modal.vue';
 import Form from '@/Pages/Category/Partials/Form.vue';
 import iziToast from 'izitoast';
 import { reactive } from 'vue';
+import Store from '@/Store/index';
+
+const store = Store();
 
 const props = defineProps({
     btnClass: String,

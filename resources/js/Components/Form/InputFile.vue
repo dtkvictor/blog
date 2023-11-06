@@ -7,8 +7,8 @@
 
 <script>
 export default {
-    props: ['name', 'accept', 'default', 'imgClass'],
-    emits: ['binaryFile'],
+    props: ['name', 'accept', 'default', 'imgClass', ''],
+    emits: ['binaryFile', 'clearImage'],
     data: () => ({
         url: ''
     }),
@@ -20,9 +20,13 @@ export default {
             let fileReader = new FileReader();
             fileReader.onload = (event) => {                        
                 this.url = event.target.result;
-            };            
-            this.$emit('binaryFile', file);
+            };                        
             fileReader.readAsDataURL(file);
+            this.$emit('binaryFile', file);
+            this.$emit('clearImage', this.clearImage);
+        },
+        clearImage() {
+            this.url = null;
         }
     },
     

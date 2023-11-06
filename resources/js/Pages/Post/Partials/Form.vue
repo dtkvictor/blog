@@ -9,6 +9,7 @@
                     :default="post?.thumb ?? '/assets/image/upload.jpg'"                    
                     imgClass="w-60 h-60 opacity-[90%] hover:opacity-75 rounded"                            
                     @binaryFile="form.thumb = $event"
+                    @clearImage="data.clearImage = $event"
                 />                        
                 <InputError class="mt-2" :message="data.errors.thumb" />
             </div>
@@ -47,11 +48,8 @@
                     theme="snow"
                     :content= "form.content"                    
                     v-model:content= "form.content"             
-                    ref="quillContent"
-                />
-
-                <!--v-model:content="form.content"-->
-
+                    ref="quillContent"                    
+                />                
                 <InputError class="mt-2" :message="data.errors.content" />
             </div>                                                                                      
 
@@ -94,6 +92,7 @@ const props = defineProps({
 
 const data = reactive({    
     errors: {},    
+    clearImage: null,
 })
 
 const form = useForm({
@@ -108,8 +107,11 @@ const formClear = () => {
     form.thumb = '',
     form.content = '',
     form.category = store.firstCategory.id,
+    quillContent.value.setHTML('')
     data.errors = {}
-    quillContent.value.setHTML('')    
+    if(data.clearImage) {
+        data.clearImage();        
+    }
 }
 
 const submit = () => {
@@ -122,10 +124,10 @@ const submit = () => {
                 title: "Sucesso!",
                 message: props.success,
             });
-            if(props.clear) formClear();
+            if(props.clear) formClear();            
         },
         onError: response => {
-            data.errors = response                   
+            data.errors = response;                               
         }
     });    
 }

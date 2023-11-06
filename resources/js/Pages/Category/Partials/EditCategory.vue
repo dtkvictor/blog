@@ -4,12 +4,11 @@
     </button>
     <Modal :show="data.showModalCreate" @close="closeModal">                    
         <Form 
-            method="put" 
+            method="put"
             :routeName="route('category.update', category.id)"
-            :category="category"             
-            :success="success" 
-            :fails="fails"
-            :clear="true"
+            :category="category"
+            :success="success"            
+            @updated="store.updateCategory($event)"
         >
             <template #header>
                 <div class="w-full flex justify-between items-center">
@@ -27,6 +26,9 @@ import Modal from '@/Components/Modal.vue';
 import Form from './Form.vue';
 import iziToast from 'izitoast';
 import { reactive } from 'vue';
+import Store from '@/Store';
+
+const store = Store();
 
 const props = defineProps({
     btnClass: String,

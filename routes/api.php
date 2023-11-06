@@ -23,4 +23,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('category', [CategoryController::class, 'list'])->name('api.category');
 Route::get('author', [UserController::class, 'author'])->name('api.author');
-//Route::get('comments/post/{postId}', [CommentsController::class])->name('api.comments');
+Route::get('comments/post/{postId}', [CommentsController::class, 'index'])->name('api.comments');

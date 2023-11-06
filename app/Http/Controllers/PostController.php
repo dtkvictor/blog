@@ -22,11 +22,11 @@ class PostController extends Controller
 
         if(!isset($filters['orderBy'])) {
             $filters['orderBy'] = 'created';
-        }
-        
+        }    
         $posts = new PostRepository(new Post());                
         $posts = $posts->filterBy($filters)
                        ->where('user', auth()->user()->id)
+                       ->with('user', 'category')
                        ->paginate(10)
                        ->onEachSide(1)
                        ->withQueryString();
@@ -50,15 +50,18 @@ class PostController extends Controller
         $posts = new PostRepository(new Post());
         $posts = $posts->filterBy($request->all());
         $posts = $posts->orderBy('updated_at', 'desc')
-                        ->with('user')
-                        ->withCount('likes')
+                        ->withCount('likes')                        
                         ->paginate(10)
-                        ->onEachSide(1);                        
+                        ->onEachSide(1);
+        
+        $posts->each(function($post) {        
+            $post->user = $post->user()->first();
+            $post->category = $post->category()->first();
+            $post->preview();
+        });
 
         return Inertia::render('Post/Index', [
-            'response' => $posts,
-            'success' => $request->session()->pull('success', false),
-            'error' => $request->session()->pull('error', false)
+            'response' => $posts,            
         ]);
     }    
 
@@ -68,11 +71,22 @@ class PostController extends Controller
     public function show(string $slug)
     {                        
         if(!$post = Post::where('slug', $slug)->first()) return abort(404);
-        $post->like();        
-        $post->related(); 
+
+        $post->category = $post->category()->first();
+        $post->user = $post->user()->first();
+        $post->like();
+
+        $comments = $post->comments()
+                         ->orderBy('created_at', 'DESC')
+                         ->limit(5)
+                         ->get();
+
+        $related = $post->related();
         
         return Inertia::render('Post/Show', [
-            'post' => $post
+            'post' => $post,
+            'comments' => $comments,
+            'related' => $related
         ]);        
     }    
 
@@ -116,7 +130,7 @@ class PostController extends Controller
             'title' => "required|string|max:500",
             'content' => "required|string",
             'category' => "required|exists:App\Models\Category,id",
-            'thumb' => 'image'
+            'thumb' => 'image|nullable'
         ]);
                 
         $data = $request->only(['title', 'content', 'category']);

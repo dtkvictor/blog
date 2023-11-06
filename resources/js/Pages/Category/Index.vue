@@ -1,12 +1,18 @@
 <template>
-    <DefaultLayout>                   
+    <DefaultLayout placeholder="Apache2..." :routeSearch="route('category.filter') + '/name'">
         <Head title="Categorias"/>        
         <section class="flex flex-wrap justify-center gap-5">
             <div class="w-full md:w-3/5">
                 <SubHeader class='mb-5' title="Categorias"></SubHeader>            
                 <div class="relative flex justify-between gap-3 w-full mb-5">                                                                     
                     <CreateCategory btnClass="rounded-full"/>                                                
-                    <FilterBar class="absolute right-0"/>                                        
+                    <FilterBar 
+                        class="absolute right-0" 
+                        contentHeight="200px"
+                        :hidden="['category', 'author']" 
+                        :filteringRoute="route('category.filter')"
+                        :orderByFilters="orderByFilters"
+                    />
                 </div>                                
                 <div v-for="category, index in categories" :key="index">
                     <div class="bg-white mb-5 rounded shadow p-3">
@@ -52,7 +58,12 @@
             FilterBar,
             Head, Link,
         },
-        props: ['response'],
+        props: ['response'],        
+        data: () => ({
+            orderByFilters: [
+                { name: 'Alfabética', value: 'name' }
+            ]
+        }),
         methods: {
             localFormat(date) {
                 let localFormat = new Date(date);

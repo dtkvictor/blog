@@ -3,18 +3,20 @@
         <div class="rounded shadow bg-white duration-500 p-3 mb-1">
             <div class="flex justify-between">
                 <span>Filtrar por</span>
-                <button class="flex items-center justify-center" @click="data.showFilters = !data.showFilters">
-                    <span v-if="!data.showFilters" class="material-icons">tune</span>
-                    <span v-else class="material-icons">close</span>            
+                <button class="flex items-center justify-center" @click="openFilters" v-if="!data.showFilters">
+                    <span class="material-icons">tune</span>                    
                 </button>                    
+                <button class="flex items-center justify-center" @click="closeFilters" v-else>
+                    <span class="material-icons">close</span>            
+                </button>
             </div>
         </div>
         
         <div :class="[
-            'rounded shadow bg-white duration-500 p-3',
-            { 'overflow-hidden h-[0px] opacity-0 py-0': !data.showFilters },
-            { 'overflow-auto h-[400px] opacity-100': data.showFilters }
-        ]">            
+                'rounded shadow bg-white duration-500 p-3',                 
+                { 'overflow-hidden h-[0px] opacity-0 py-0': !data.showFilters },
+                { 'overflow-auto h-fit max-h-[300px] opacity-100': data.showFilters },
+            ]">            
             <div class="w-full h-full">
                 <div v-if="hiddenFilter('category')">
                     <h2 class="font-bold">Categorias: </h2>
@@ -47,7 +49,7 @@
                 <div v-if="hiddenFilter('orderBy')">
                     <h2 class="font-bold">Ordenar: </h2>
                     <ul class="pl-5">                    
-                        <li v-for="orderBy, index in orderByFilters" :key="index">
+                        <li v-for="orderBy, index in data.orderByFilters" :key="index">
                             <button 
                                 :class="[activate('orderBy', orderBy.value), 'hover:text-blue-500']"
                                 @click="searchFilters('orderBy', orderBy.value)"
@@ -81,8 +83,8 @@
 </template>
 <script setup>    
     import { router } from '@inertiajs/vue3';
-    import { onBeforeMount, reactive, computed } from 'vue';
-    import Store from '@/Store/index.js';
+    import { onBeforeMount, reactive } from 'vue';
+    import Store from '@/Store/index.js';    
 
     const store = Store();
 
@@ -98,12 +100,21 @@
         orderByFilters: {
             type: Array,
             default: []
+        },
+        contentHeight: {
+            type: String,
+            default: '400px'
         }
     })
 
-    const data = reactive({        
-        showFilters: false,
-        selected: new Map()
+    const data = reactive({
+        classContentFilters: 'overflow-hidden h-[0px] opacity-0 py-0',
+        showFilters: false,        
+        selected: new Map(),        
+        orderByFilters: [            
+            { name: 'Criação', value: 'created' },
+            { name: 'Atualização', value: 'updated' },            
+        ]        
     });
 
     const activate = (field, value) => {
@@ -150,8 +161,23 @@
         return true;
     }
 
+    const openFilters = () => {
+        data.showFilters = true;        
+    }
+
+    const closeFilters = () => {
+        data.showFilters = false;        
+    }
+
+    const setOrderByFilter = () => {
+        data.orderByFilters.unshift(
+            ...props.orderByFilters
+        );
+    }
+
     onBeforeMount(() => {        
         setUrlQueries();        
+        setOrderByFilter();
     });
 
 </script>

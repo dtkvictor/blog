@@ -26,7 +26,7 @@ class Like extends Model
 
     public static function  getByPostAndUserAuth(int $post)
     {
-        if(!auth()->check()) return false;        
+        if(!auth()->check()) return false;
         return Like::where('post', $post)
                    ->where('user', auth()->user()->id)
                    ->count();

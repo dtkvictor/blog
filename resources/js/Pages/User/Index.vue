@@ -1,8 +1,14 @@
 <template>
-    <DefaultLayout>
+    <DefaultLayout placeholder="Carlos Dias..." :routeSearch="route('user.filter') + '/name'">
         <Container title="Usuários" :paginationLinks="response.links">
             <div class="relative flex justify-end w-full mb-5 h-[48px]">
-                <FilterBar class="absolute right-0"/>                
+                <FilterBar 
+                    class="absolute right-0" 
+                    contentHeight="200px"
+                    :hidden="['category', 'author']"                    
+                    :filteringRoute="route('user.filter')"
+                    :orderByFilters="orderByFilters"
+                />                
             </div>
             <div v-for="user, index in response.data" :key="index">
                 <div class="w-full bg-white shadow rounded p-3 mb-5"> 
@@ -29,13 +35,6 @@
                                 <p>{{ user.post_count }}</p>
                             </li>
                         </ul>                                                                                                                        
-                        <!--Link 
-                            class="text-blue-500 hover:underline"
-                            v-if="user.post_count > 0" 
-                            :href="route('user.show', user.id)"
-                        >
-                            Ver mais
-                        </Link-->
                     </div>
 
                     <div class="flex justify-end gap-1">
@@ -66,6 +65,11 @@
             Link
         },
         props: ['response'],
+        data: () => ({
+            orderByFilters: [
+                { name: 'Alfabética', value: 'name' }
+            ]
+        }),
     }
 
 </script>

@@ -18,9 +18,10 @@
             <div class="mt-4">
                 <InputLabel for="description" value="Descrição" />
                 <QuillEditor 
+                    ref="quillContent"
                     contentType="html"
                     :content="form.description"
-                    theme="snow" v-model:content="form.description"
+                    theme="snow" v-model:content="form.description"                    
                 />
                 <InputError class="mt-2" :message="data.errors.description" />
             </div>                                                                                      
@@ -41,12 +42,16 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 
 import { useForm, router } from '@inertiajs/vue3';
-import { defineComponent, reactive } from 'vue';
+import { defineComponent, reactive, defineEmits, ref } from 'vue';
 import { QuillEditor } from '@vueup/vue-quill'
 
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
-const data = reactive({    
+const quillContent = ref(null);
+
+const emits = defineEmits(['created', 'updated']);
+
+const data = reactive({
     errors: {},
 })
 
@@ -67,25 +72,37 @@ const form = useForm({
 const formClear = () => {
     form.name = '',
     form.description = ''
+    quillContent.value.setHTML('')
+    data.errors = {}
 }
 
-const submit = () => {    
+const emit = {
+    post: () => emits('created'),
+    put: () => emits('updated', { ...props.category, ...form }),
+    patch: () => emits('updated', { ...props.category, ...form })
+}
+
+const submit = () => {        
     router.visit(props.routeName, {
         method: props.method,
         data: form,
+        preserveState: true,
+
         onSuccess: response => {
             if(props.success) {                
                 props.success(response);                
             }
-            if(props.clear) formClear();
+            if(emit[props.method]) {
+                emit[props.method]();
+            }
+            if(props.clear) {
+                formClear();
+            }            
         },
         onError: response => {            
-            data.errors = response
-            if(props.fails) {                
-                props.fails(response);
-            }
+            data.errors = response;                 
         }
-    });    
+    });
 }
 
 defineComponent('QuillEditor', QuillEditor);

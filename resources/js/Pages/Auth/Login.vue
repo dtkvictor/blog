@@ -14,8 +14,8 @@ defineProps({
 });
 
 const form = useForm({
-    email: '',
-    password: '',
+    email: 'admin@admin.com',
+    password: 'senha123',
     remember: false,
 });
 
@@ -34,7 +34,12 @@ const submit = () => {
 
     <AuthenticationCard>
         <div class="w-full flex justify-between">
-            <h1 class="text-3xl mb-3 font-light">Log In</h1>            
+            <h1 class="text-3xl mb-3 font-light">Log In</h1>   
+            <div class="flex justify-center items-center">
+                <Link :href="route('site.index')" class="material-icons" translate="no">
+                    home
+                </Link>       
+            </div>
         </div>
         <div v-if="fails" class="mb-4 font-medium text-sm text-red-600">
             {{ fails }}

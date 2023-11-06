@@ -19,7 +19,7 @@ class CategoryController extends Controller
      */    
     public function list()
     {
-        $categories = Category::get();
+        $categories = Category::orderBy('updated_at', 'DESC')->get();
         return new CategoryCollection($categories);
     } 
 
@@ -48,11 +48,11 @@ class CategoryController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
+    {    
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
-            'description' => 'required|string'
-        ]);        
+            'description' => 'required|string|max:500'
+        ]);                
 
         $category = new Category(); 
         $category->name = $request->name;
@@ -66,14 +66,14 @@ class CategoryController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, int $id)
-    {        
+    {                
         if(!$category = Category::find($id)) {            
             return back()->withErrors(['erro' => 'Category not found']);
         }
 
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
-            'description' => 'required|string'
+            'description' => 'required|string|max:500'
         ]);                
 
         $category->name = $request->input('name');

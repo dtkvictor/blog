@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use App\Rules\ComparePassword;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -16,7 +18,7 @@ class ProfileController extends Controller
     public function updateData(Request $request)
     {
         $request->validate([
-            'profile' => 'image',
+            'profile' => 'image|nullable',
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string|max:255',
         ]);

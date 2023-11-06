@@ -9,37 +9,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CommentsController extends Controller
-{        
-
-    public function show(int $post) 
-    {        
-        $comments = Comments::where('post', $post)->orderBy('created_at', 'desc')->paginate(10);
-        if($comments) return new CommentsCollection($comments);
-        return ApiResponse::noContent("");
+{      
+    public function index($post)
+    {                        
+        $comments = Comments::where('post', $post)->orderBy('created_at', 'DESC')->paginate(4);
+        return new CommentsCollection($comments);
     }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'post' => 'required|exists:posts,id',
             'text' => 'required|string'
-        ], $request->all());
-
-        if($validator->fails()) {
-            return ApiResponse::unprocessableEntity(
-                $validator->errors()
-            );
-        }
+        ]);                
 
         $comment = new Comments();
         $comment->user = auth()->user()->id;
         $comment->post = $request->input('post');
         $comment->text = $request->input('text');
         $comment->save();
-        
-        return ApiResponse::created("Successfully created comment", $comment);
     }    
 
     /**
@@ -47,24 +38,18 @@ class CommentsController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        $validator = Validator::make($request->all(), [            
-            'text' => 'required|string'
-        ], $request->all());
-
-        if($validator->fails()) {
-            return ApiResponse::unprocessableEntity(
-                $validator->errors()
-            );
-        }        
-
         $user = auth()->user()->id;
+        $request->validate([            
+            'text' => 'required|string'
+        ]);        
+
         if(!$comment = Comments::where('user', $user)->find($id)) {
-            return ApiResponse::notFound("Comment not found");
+            return back()->withErrors(["erro" => "Comment not found"]);
+            ApiResponse::notFound();
         }                        
+
         $comment->text = $request->input('text');
         $comment->save();
-
-        return ApiResponse::success("Successfuly updated comment");
     }
 
     /**
@@ -81,8 +66,7 @@ class CommentsController extends Controller
             $comment->delete();            
         }
         else {
-            return ApiResponse::notFound("Comment not found");
-        }        
-        return ApiResponse::noContent("Successfully deleted comment");
+            return back()->withErrors(["erro" => "Comment not found"]);
+        }                
     }
 }

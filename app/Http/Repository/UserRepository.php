@@ -6,7 +6,7 @@ class UserRepository extends Repository
 { 	
     public function filterByName(string $name)
     {
-        return $this->supportFilterByString('name', $name);
+        return $this->supportFilterByString('slug', $name);
     }
 
 	public function filterByAdmin(bool $admin)
@@ -32,7 +32,7 @@ class UserRepository extends Repository
 	{
 		 return [
 			'name' => 'filterByName',
-			'admin' => 'filterByAdmin',			
+			'admin' => 'filterByAdmin',
 			'min' => 'filterByMinPost',
 			'max' => 'filterByMaxPost',
 		 ];

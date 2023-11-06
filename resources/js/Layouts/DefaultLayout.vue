@@ -45,6 +45,7 @@
             getSearchText(){
                 let search = this.searchText;
                 search = search.replace(/ /g, '-');
+                search = search.toLocaleLowerCase();
                 return search;
             },            
         }

@@ -15,13 +15,29 @@ class CommentsFactory extends Factory
      * Define the model's default state.
      *
      * @return array<string, mixed>
-     */
+     */    
     public function definition(): array
     {
         return [
-            'user' => User::first()->id,
-            'post' => Post::first()->id,
+            'user' => $this->randomUser(),
+            'post' => $this->randomPost(),
             'text' => fake()->paragraph()
         ];
+    }
+
+    private function randomUser()
+    {
+        $user = User::all();
+        $max = count($user) - 1;
+        $rand = rand(0, $max);
+        return $user[$rand]->id;
+    }
+
+    private function randomPost()
+    {
+        $post = Post::all();
+        $max = count($post) - 1;
+        $rand = rand(0, $max);        
+        return $post[$rand]->id;
     }
 }

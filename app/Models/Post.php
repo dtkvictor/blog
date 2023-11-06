@@ -20,12 +20,7 @@ class Post extends Model
     {
         $this->attributes['title'] = $value;
         $this->attributes['slug'] = Str::slug($value);
-    }
-    
-    public function getCategoryAttribute()
-    {
-        return Category::find($this->attributes['category']);
-    }
+    }    
 
     public function getThumbAttribute()
     {
@@ -42,18 +37,18 @@ class Post extends Model
         return $this->belongsTo(Category::class, 'category', 'id');
     }
 
-    public function comments(int $limit = 5)
+    public function comments()
     {        
-        $comments = Comments::where('post', $this->attributes['id'])
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)            
-            ->get();
-        $this->setAttribute("comments", $comments);
+        return $this->hasMany(Comments::class, 'post', 'id');
     }
 
     public function like()
     {
-        $like = $this->belongsToMany(Post::class, 'likes', 'user', 'post')->count();
+        if(!auth()->check()) return false;
+        
+        $like = $this->hasMany(Like::class, 'post', 'id')
+                     ->where('user', auth()->user()->id)
+                     ->count();
         $this->setAttribute('like', $like);
     }
 
@@ -62,12 +57,31 @@ class Post extends Model
         return $this->hasMany(Like::class, 'post', 'id');
     }
 
+    public function preview()
+    {
+        $content = $this->attributes['content'];
+        $content = substr($content, 0, 400);        
+        $this->attributes['content'] = $content.'...';
+    }
+
     public function related(int $limit = 3)
-    {        
-        $related = $this->where('category', $this->attributes['category'])
-            ->with('user')
-            ->limit($limit)
-            ->get();
-        $this->setAttribute('related', $related);
+    {                                
+        $category = $this->attributes['category'];        
+
+        if(gettype($category) == "object") {
+            $category = $category->id;
+        }
+        
+        $related = $this->where('category', $category ?? 0)
+                    ->with('user')
+                    ->limit($limit)
+                    ->get();
+
+        $related->each(function($post) {
+            $post->user = $post->user()->first();
+            $post->category = $post->category()->first();
+        });
+        
+        return $related;
     }
 }

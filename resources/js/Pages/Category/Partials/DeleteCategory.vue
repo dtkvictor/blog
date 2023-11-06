@@ -3,7 +3,8 @@
         :btnClass="btnClass"
         :routeName="route('category.destroy', category.id)"
         :messageSuccess="`Categoria: ${category.name} deletada com sucesso!`"
-        :messageFails="`Falha ao deletar a categoria ${category.name}`"                                
+        :messageFails="`Falha ao deletar a categoria ${category.name}`"
+        @success="store.refreshCategory()"
     >
         <template #title>
             <h1 class="text-3xl mb-3 font-light">Deletar categoria</h1>             
@@ -15,10 +16,9 @@
         </template>
     </ActionDelete>
 </template>
-<script>
+<script setup>
     import ActionDelete from '@/Components/Actions/Delete.vue'
-    export default {
-        components: { ActionDelete },
-        props: ['category', 'btnClass']
-    }
+    import Store from '@/Store';
+    const store = Store();
+    const props = defineProps(['category', 'btnClass']);
 </script>
