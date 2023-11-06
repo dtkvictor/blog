@@ -41,3 +41,18 @@ input:focus, input:focus-visible {
 .v-enter-from, .v-leave-to {
     opacity: 0;
 }
+
+.slide {    
+    animation: slide-to-right 1s ease-in;
+}
+
+@keyframes slide-to-right {
+    from {
+        transform: translateX(-10rem);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0rem);
+        opacity: 1;
+    }
+}

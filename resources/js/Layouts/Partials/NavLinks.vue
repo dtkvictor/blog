@@ -1,6 +1,6 @@
 <template>
     <nav :class="navClass ?? 'font-bold flex flex-col gap-3 p-3 text-neutral-900'">
-        <Link :href="route('site.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('site')]">
+        <Link :href="route('site.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('site.index')]">
             <span class='material-icons' translate="no">home</span>
             <p>Início</p>
         </Link>             
@@ -15,15 +15,15 @@
                 <p>Admin: </p>
             </div>
             <div class="flex flex-col gap-3 ps-3">
-                <Link :href="route('post.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('post')]">
+                <Link :href="route('post.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('post.index')]">
                     <span class='material-icons' translate="no">feed</span>
                     <p>Postagens</p>
                 </Link>         
-                <Link :href="route('category.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('category')]">
+                <Link :href="route('category.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('category.index')]">
                     <span class='material-icons' translate="no">category</span>
                     <p>Categorias</p>
                 </Link>         
-                <Link :href="route('user.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('user')]">
+                <Link :href="route('user.index')" :class="['flex gap-1 items-center hover:text-blue-500', actived('user.index')]">
                     <span class='material-icons' translate="no">groups</span>
                     <p>Usuários</p>
                 </Link>                                                        
@@ -44,7 +44,7 @@
         props: ['navClass', 'activeColor'],
         methods: {
             actived(routeName) {                          
-                const route = this.$page.props.current_page;
+                const route = this.$page.props.current_page;                
                 if(route == routeName) return this.activeColor ?? 'text-blue-500';
             }
         },

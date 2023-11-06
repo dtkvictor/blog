@@ -4,7 +4,7 @@
             v-for="link, index in getLinks" 
             :key="index" 
             v-html="link.label" 
-            :href="link.url"
+            :href="link.url ?? currentURL"
             :class="[
                 'w-[40px] h-[40px] flex justify-center items-center p-2',
                 'rounded shadow hover:bg-gray-500 hover:text-white active:scale-75',
@@ -25,7 +25,10 @@
                 links.shift(); links.pop();
                 if(links.length <= 1) return [];                
                 return links;
+            },
+            currentURL() {
+                return window.location.href;
             }
-        }
+        },        
     }
 </script>

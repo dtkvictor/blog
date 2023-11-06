@@ -35,7 +35,9 @@ export default defineStore('store', {
     },
     getters: {
         firstCategory() {
-            return this.categories[0];
+            if(this.categories[0]){
+                return this.categories[0];
+            }                        
         }
     }   
 });

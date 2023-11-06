@@ -43,6 +43,7 @@
                     </div>
                 </div>
             </div>
+            <NotFound contentClass="md:w-full" v-if="response.data < 1"/>
         </Container>                
     </DefaultLayout>    
 </template>
@@ -53,6 +54,7 @@
     import FilterBar from '@/Components/FilterBar.vue';
     import EditUser from './Partials/EditUser.vue';
     import DeleteUser from './Partials/DeleteUser.vue';
+    import NotFound from '@/Components/NotFound.vue';
     import { Link } from '@inertiajs/vue3';
 
     export default {        
@@ -62,7 +64,8 @@
             FilterBar,             
             EditUser, 
             DeleteUser, 
-            Link
+            Link,
+            NotFound
         },
         props: ['response'],
         data: () => ({

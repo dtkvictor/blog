@@ -26,9 +26,10 @@ class UserController extends Controller
         if(!isset($filters['orderBy'])) {
             $filters['orderBy'] = 'created';
         }
-
+        
         $users = new UserRepository(new User());
         $users = $users->filterBy($filters)
+                       ->where('id', '!=', auth()->user()->id)
                        ->withCount(['post'])            
                        ->paginate(10)
                        ->onEachSide(1);

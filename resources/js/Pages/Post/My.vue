@@ -22,6 +22,7 @@
                     <DeletePost :post="post" btnClass="w-[50px] h-[50px] rounded"/>
                 </div>
             </div>
+            <NotFound contentClass="md:w-full" v-if="response.data < 1"/>
         </Container>
     </DefaultLayout>
 </template>
@@ -32,6 +33,7 @@
     import DeletePost from './Partials/DeletePost.vue';
     import CreatePost from './Partials/CreatePost.vue';
     import EditPost from './Partials/EditPost.vue';
+    import NotFound from '@/Components/NotFound.vue';
     import { Link } from '@inertiajs/vue3';
 
     export default {        
@@ -42,7 +44,8 @@
             Link,
             CreatePost, 
             EditPost,
-            DeletePost
+            DeletePost,
+            NotFound
         },
         props: ['response'],
         data: () => ({

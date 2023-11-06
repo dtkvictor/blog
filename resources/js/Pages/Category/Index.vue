@@ -31,7 +31,8 @@
                         </div>
                     </div>
                 </div>
-            </div>                                  
+                <NotFound contentClass="md:w-full" v-if="categories.length < 1"/>
+            </div>                
             <Pagination class="mt-[-1.25rem]" :links="links"/>  
         </section>
     </DefaultLayout>
@@ -45,6 +46,7 @@
     import CreateCategory from './Partials/CreateCategory.vue';
     import EditCategory from './Partials/EditCategory.vue';
     import FilterBar from '@/Components/FilterBar.vue';
+    import NotFound from '@/Components/NotFound.vue';
     import { Head, Link } from '@inertiajs/vue3';
 
     export default {        
@@ -57,6 +59,7 @@
             EditCategory,
             FilterBar,
             Head, Link,
+            NotFound
         },
         props: ['response'],        
         data: () => ({

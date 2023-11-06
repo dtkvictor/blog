@@ -99,7 +99,7 @@ const form = useForm({
     title: props.post?.title ?? '',
     thumb: '',
     content: props.post?.content ?? '',
-    category: props.post?.category?.id ?? store.firstCategory.id,    
+    category: props.post?.category?.id ?? store.firstCategory?.id,    
 });
 
 const formClear = () => {

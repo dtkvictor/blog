@@ -11,10 +11,15 @@
                         :filteringRoute="route('site.filter')"                         
                     />
                 </div>                                                        
-                <div v-for="post in posts" :key="post.id">
+                <div v-for="post in posts" :key="post.id" class="slide">
                     <div class="flex flex-col md:flex-row gap-3 p-3 mb-5 rounded shadow bg-white w-full h-fit">
                         <div class="w-full md:w-[25%] h-fit border">
-                            <img class="w-full h-full aspect-[1/1] rounded overflow-hidden" :src="post.thumb" :alt="post.slug">                                        
+                            <img 
+                                class="w-full h-full aspect-[1/1] rounded overflow-hidden" 
+                                :src="post.thumb" 
+                                :alt="post.slug"
+                                onerror="this.src='assets/image/catload.gif'"
+                            >                                        
                         </div>                        
                         <div class="w-full md:w-[75%] flex flex-col">                            
                             <Link class="text-xl underline" :href="route('site.show', post.slug)">{{ post.title }}</Link>
@@ -25,10 +30,11 @@
                             <div class="break-all leading-normal overflow-hidden ellipse" v-html="post.content"></div>
                         </div>                        
                     </div>
-                </div>            
-                <Pagination :links="response.links"/>                                     
+                </div>    
+                <NotFound contentClass="md:w-full" v-if="response.data.length < 1"/>        
+                <Pagination :links="response.links" v-show="showPagination"/>                                     
             </div>
-        </section>                   
+        </section>                
     </Layout>
 </template>
 <script>    
@@ -36,24 +42,35 @@
     import FilterBar from '@/Components/FilterBar.vue';
     import Pagination from '@/Components/Pagination.vue';
     import CreatePost from './Partials/CreatePost.vue';
+    import NotFound from '@/Components/NotFound.vue';
     import { Head, Link } from '@inertiajs/vue3';
 
     export default {        
-        components: { Layout, FilterBar, Head, Link, Pagination, CreatePost },
+        components: { Layout, FilterBar, Head, Link, Pagination, CreatePost, NotFound },
         props: ['response', 'others', 'success', 'error'],
+        mounted() {        
+            let delay = 0;    
+            this.response.data.forEach(post => {                                
+                setTimeout(() => {
+                    this.posts.push(post)
+                }, delay);
+                delay += 750;
+            });            
+        },
         data: () => ({
             orderByFilters: [                
                 { name: 'Alfabética', value: 'title' },
                 { name: 'Relevância', value: 'relevance' },                
-            ]
+            ],
+            posts: [],
         }),
-        computed: {
-            posts(){
-                return this.response.data;
-            },
+        computed: {            
             auth() {
                 return this.$page.props.auth;
             },
+            showPagination() {
+                return this.response.data.length == this.posts.length;
+            },            
         },
         methods: {
             formatDate(date) {
