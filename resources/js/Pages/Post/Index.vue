@@ -49,13 +49,7 @@
         components: { Layout, FilterBar, Head, Link, Pagination, CreatePost, NotFound },
         props: ['response', 'others', 'success', 'error'],
         mounted() {        
-            let delay = 0;    
-            this.response.data.forEach(post => {                                
-                setTimeout(() => {
-                    this.posts.push(post)
-                }, delay);
-                delay += 750;
-            });            
+            this.animateLoadPosts();
         },
         data: () => ({
             orderByFilters: [                
@@ -71,12 +65,30 @@
             showPagination() {
                 return this.response.data.length == this.posts.length;
             },            
+            getPosts() {
+                return this.response.data;
+            }
         },
         methods: {
             formatDate(date) {
                 date = new Date(date);
                 return date.toLocaleDateString();                
-            }                     
+            },
+            animateLoadPosts(){
+                let delay = 0;    
+                this.getPosts.forEach(post => {
+                    setTimeout(() => {
+                        this.posts.push(post)
+                    }, delay);
+                    delay += 500;
+                });            
+            }
+        },
+        watch: {
+            getPosts() {
+                this.posts = [];
+                this.animateLoadPosts();
+            }
         }                
     }
 </script>
