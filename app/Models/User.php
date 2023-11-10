@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
@@ -26,6 +27,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'picture',
         'name',
         'email',
         'password',
@@ -75,24 +77,13 @@ class User extends Authenticatable
     {        
         $this->attributes['password'] = bcrypt($value);
     }
-
-    public function setPictureAttribute($value)
+    
+    public function setUrlPicture()
     {
-        $picture = $this->attributes['picture'] ?? null;
-
-        if(!empty($picture) && Storage::exists($picture)) {
-            Storage::delete($picture);
+        if(empty($this->attributes['picture'])) {
+            $this->attributes['picture'] = asset('assets/image/profile.jpg');
         }
-
-        $this->attributes['picture'] = $value;
-    }
-
-    public function getPictureAttribute()
-    {
-        if(empty($this->attributes['picture'])) { 
-            return asset('assets/image/profile.jpg');
-        }
-        return 'storage/'.$this->attributes['picture'];
+        $this->attributes['picture'] = asset('storage/'.$this->attributes['picture']);
     }
 
     public function post() 
@@ -104,5 +95,4 @@ class User extends Authenticatable
     {        
         return $this->belongsToMany(Post::class, 'likes', 'user', 'id');
     }
-
 }

@@ -5,15 +5,10 @@
     import SectionBorder from '@/Components/SectionBorder.vue';    
     import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm.vue';
     import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm.vue';
-
-defineProps({
-    confirmsTwoFactorAuthentication: Boolean,
-    sessions: Array,
-});
 </script>
 
-<template>
-    <DefaultLayout>
+<template>    
+    <DefaultLayout :routeSearch="route('site.filter') + '/title'" placeholder="Install Lampp...">
         <Head title="Perfil"/>    
         <div>
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

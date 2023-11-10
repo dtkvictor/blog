@@ -21,16 +21,12 @@ class CommentsController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'post' => 'required|exists:posts,id',
             'text' => 'required|string'
         ]);                
-
-        $comment = new Comments();
-        $comment->user = auth()->user()->id;
-        $comment->post = $request->input('post');
-        $comment->text = $request->input('text');
-        $comment->save();
+        $data['user'] = auth()->id();
+        Comments::create($data);        
     }    
 
     /**
@@ -38,14 +34,14 @@ class CommentsController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        $user = auth()->user()->id;
+        $user = auth()->id();
+
         $request->validate([            
             'text' => 'required|string'
         ]);        
 
         if(!$comment = Comments::where('user', $user)->find($id)) {
-            return back()->withErrors(["erro" => "Comment not found"]);
-            ApiResponse::notFound();
+            return back()->withErrors(["erro" => "Comment not found"]);        
         }                        
 
         $comment->text = $request->input('text');
@@ -60,13 +56,13 @@ class CommentsController extends Controller
         $user = auth()->user();
 
         if($user->admin && $comment = Comments::find($id)) {
-            $comment->delete();    
+            $comment->delete();
         }
-        else if($comment = Comments::where('user', $user)->find($id)) {
+        else if($comment = Comments::where('user', $user->id)->find($id)) {
             $comment->delete();            
         }
         else {
             return back()->withErrors(["erro" => "Comment not found"]);
-        }                
+        }
     }
 }

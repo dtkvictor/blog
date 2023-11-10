@@ -21,7 +21,7 @@ class CategoryController extends Controller
     {
         $categories = Category::orderBy('updated_at', 'DESC')->get();
         return new CategoryCollection($categories);
-    } 
+    }
 
     /**
      * Display a listing of the resource.
@@ -49,16 +49,11 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {    
-        $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'required|string|max:500'
         ]);                
-
-        $category = new Category(); 
-        $category->name = $request->name;
-        $category->description = $request->description;
-        $category->save();
-        
+        Category::create($data);    
         Logs::create(Category::class, "create new category");        
     }    
 
@@ -67,10 +62,10 @@ class CategoryController extends Controller
      */
     public function update(Request $request, int $id)
     {                
-        if(!$category = Category::find($id)) {            
+        if(!$category = Category::find($id)) {
             return back()->withErrors(['erro' => 'Category not found']);
         }
-
+        
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'required|string|max:500'

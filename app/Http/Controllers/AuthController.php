@@ -9,27 +9,20 @@ use Inertia\Inertia;
 
 class AuthController extends Controller
 {        
-
     public function login(Request $request)
     {                        
         $data = $request->validate([
             'email' => 'required|email|exists:users,email',
             'password' => 'required|string'            
         ]);   
-
-        $user = User::where('email', $request->email)->first();                
-
-        if(password_verify($request->password, $user->password)) {
-            Auth::login($user);
+        
+        if(Auth::attempt($data)) {
             return to_route('site.index');
-        }                        
+        }        
 
-        $request->session()->put(
-            'failsLogin', 
-            "Unable to log in, please check your data and try again"
-        );
-
-        return to_route('login');        
+        return back()->withErrors([
+            'fail' => "Unable to log in, please check your data and try again"
+        ]);        
     }    
 
     public function register(Request $request)
@@ -57,20 +50,12 @@ class AuthController extends Controller
 
     public function formLogin(Request $request)
     {        
-        if(auth()->user()) return to_route('site.index');
-
-        $fails = $request->session()->pull('failsLogin', '');        
-        return Inertia::render('Auth/Login', [
-            'fails' => $fails
-        ]);
+        if(auth()->check()) return to_route('site.index');        
+        return Inertia::render('Auth/Login');
     }    
 
     public function formRegister(Request $request)
-    {
-        $fails = $request->session()->pull('failsLogin', '');
-
-        return Inertia::render('Auth/Register', [
-            'fails' => $fails
-        ]);
+    {        
+        return Inertia::render('Auth/Register');
     }
 }

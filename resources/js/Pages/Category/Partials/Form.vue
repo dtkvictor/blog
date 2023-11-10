@@ -12,7 +12,7 @@
                     class="mt-1 block w-full border-gray-300"                            
                     autofocus                            
                 />
-                <InputError class="mt-2" :message="data.errors.name" />
+                <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
             <div class="mt-4">
@@ -23,7 +23,7 @@
                     :content="form.description"
                     theme="snow" v-model:content="form.description"                    
                 />
-                <InputError class="mt-2" :message="data.errors.description" />
+                <InputError class="mt-2" :message="form.errors.description" />
             </div>                                                                                      
 
             <div class="flex items-center justify-end mt-4">                        
@@ -41,7 +41,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 
-import { useForm, router } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import { defineComponent, reactive, defineEmits, ref } from 'vue';
 import { QuillEditor } from '@vueup/vue-quill'
 
@@ -50,10 +50,6 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css';
 const quillContent = ref(null);
 
 const emits = defineEmits(['created', 'updated']);
-
-const data = reactive({
-    errors: {},
-})
 
 const props = defineProps([
     'routeName',
@@ -64,16 +60,17 @@ const props = defineProps([
     'clear',
 ]);
 
-const form = useForm({
+const form = reactive({
     name: props.category?.name ?? '',    
     description: props.category?.description ?? '',
-});
+    errors: {},
+})
 
 const formClear = () => {
     form.name = '',
     form.description = ''
     quillContent.value.setHTML('')
-    data.errors = {}
+    form.errors = {}
 }
 
 const emit = {
@@ -82,12 +79,9 @@ const emit = {
     patch: () => emits('updated', { ...props.category, ...form })
 }
 
-const submit = () => {        
-    router.visit(props.routeName, {
-        method: props.method,
-        data: form,
+const submit = () => {
+    router.post(props.routeName, form, {        
         preserveState: true,
-
         onSuccess: response => {
             if(props.success) {                
                 props.success(response);                
@@ -99,8 +93,8 @@ const submit = () => {
                 formClear();
             }            
         },
-        onError: response => {            
-            data.errors = response;                 
+        onError: errors => {            
+            form.errors = errors;
         }
     });
 }

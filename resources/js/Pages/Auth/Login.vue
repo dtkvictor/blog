@@ -7,12 +7,6 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 
-defineProps({
-    canResetPassword: Boolean,
-    status: String,
-    fails: String
-});
-
 const form = useForm({
     email: 'admin@admin.com',
     password: 'senha123',
@@ -41,8 +35,9 @@ const submit = () => {
                 </Link>       
             </div>
         </div>
-        <div v-if="fails" class="mb-4 font-medium text-sm text-red-600">
-            {{ fails }}
+
+        <div v-if="form.errors.fail" class="mb-4 font-medium text-sm text-red-600">
+            {{ form.errors.fail }}
         </div>
 
         <form @submit.prevent="submit">

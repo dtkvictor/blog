@@ -38,8 +38,11 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $route = Route::current();        
+        $auth = auth()->user() ?? false;
+        if($auth) $auth->setUrlPicture();
+
         return array_merge(parent::share($request), [
-            'auth' => auth()->user() ?? false,
+            'auth' => $auth,
             'current_page' => $route->getName(),
         ]);
     }

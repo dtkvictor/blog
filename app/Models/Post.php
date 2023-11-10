@@ -5,15 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'user',
         'title',        
-        'content'
+        'content',
+        'category',
+        'thumb',
     ];
 
     public function setTitleAttribute($value)
@@ -22,9 +24,13 @@ class Post extends Model
         $this->attributes['slug'] = Str::slug($value);
     }    
 
-    public function getThumbAttribute()
-    {
-        return asset('storage/'.$this->attributes['thumb']);
+    public function setUrlThumb()
+    {        
+        if(empty($this->attributes['thumb'])){
+            $this->attributes['thumb'] = asset('assets/image/catload.gif');
+        }else {
+            $this->attributes['thumb'] = asset('storage/'.$this->attributes['thumb']);
+        }        
     }
 
     public function user() 

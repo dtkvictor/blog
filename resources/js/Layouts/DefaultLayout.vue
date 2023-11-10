@@ -1,7 +1,7 @@
 <template>
     <header class="flex justify-between items-center p-5 bg-neutral-900 shadow-md text-gray-100 gap-5">
         <Link :href="route('site.index')">
-            <h1 class="h-10 font-bold text-2xl items-center lg:flex hidden">Coderunning</h1>            
+            <h1 class="h-10 font-bold text-2xl items-center lg:flex hidden" translate="no">Coderunning</h1>            
         </Link>
         <div class="flex text-neutral-900 rounded-md bg-gray-100 sm:w-auto w-full">
             <input 

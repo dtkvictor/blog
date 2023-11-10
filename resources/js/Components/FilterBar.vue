@@ -4,10 +4,10 @@
             <div class="flex justify-between">
                 <span>Filtrar por</span>
                 <button class="flex items-center justify-center" @click="openFilters" v-if="!data.showFilters">
-                    <span class="material-icons">tune</span>                    
+                    <span class="material-icons" translate="no">tune</span>                    
                 </button>                    
                 <button class="flex items-center justify-center" @click="closeFilters" v-else>
-                    <span class="material-icons">close</span>            
+                    <span class="material-icons" translate="no">close</span>            
                 </button>
             </div>
         </div>

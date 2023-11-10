@@ -9,9 +9,9 @@
                     :default="post?.thumb ?? '/assets/image/upload.jpg'"                    
                     imgClass="w-60 h-60 opacity-[90%] hover:opacity-75 rounded"                            
                     @binaryFile="form.thumb = $event"
-                    @clearImage="data.clearImage = $event"
+                    @clearImage="form.clearImage = $event"
                 />                        
-                <InputError class="mt-2" :message="data.errors.thumb" />
+                <InputError class="mt-2" :message="form.errors.thumb" />
             </div>
                                 
             <div class="mb-4 w-full">                        
@@ -26,7 +26,7 @@
                         </option>
                     </select>                                        
                 </div>
-                <InputError class="mt-2" :message="data.errors.category" />                                                                                                    
+                <InputError class="mt-2" :message="form.errors.category" />                                                                                                    
             </div>
 
             <div>
@@ -38,7 +38,7 @@
                     class="mt-1 block w-full border-gray-300"                            
                     autofocus                            
                 />
-                <InputError class="mt-2" :message="data.errors.title" />
+                <InputError class="mt-2" :message="form.errors.title" />
             </div>
 
             <div class="mt-4">
@@ -50,7 +50,7 @@
                     v-model:content= "form.content"             
                     ref="quillContent"                    
                 />                
-                <InputError class="mt-2" :message="data.errors.content" />
+                <InputError class="mt-2" :message="form.errors.content" />
             </div>                                                                                      
 
             <div class="flex items-center justify-end mt-4">                        
@@ -70,7 +70,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 
-import { useForm, router } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import { defineComponent, reactive, ref } from 'vue';
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -90,16 +90,14 @@ const props = defineProps({
     clear: Boolean
 });
 
-const data = reactive({    
-    errors: {},    
-    clearImage: null,
-})
-
-const form = useForm({
+const form = reactive({
+    _method: props.method,
     title: props.post?.title ?? '',
     thumb: '',
     content: props.post?.content ?? '',
-    category: props.post?.category?.id ?? store.firstCategory?.id,    
+    category: props.post?.category?.id ?? store.firstCategory?.id,
+    errors: {},    
+    clearImage: null,
 });
 
 const formClear = () => {
@@ -108,26 +106,26 @@ const formClear = () => {
     form.content = '',
     form.category = store.firstCategory.id,
     quillContent.value.setHTML('')
-    data.errors = {}
-    if(data.clearImage) {
-        data.clearImage();        
+    form.errors = {}
+    if(form.clearImage) {
+        form.clearImage();
     }
 }
 
 const submit = () => {
-    router.visit(props.routeName, {
-        method: props.method,
-        data: form,
+    router.post(props.routeName, form, {                
         preserveState: true,
         onSuccess: () => {
             iziToast.success({
                 title: "Sucesso!",
                 message: props.success,
             });
-            if(props.clear) formClear();            
+            if(props.clear) {
+                formClear();
+            }
         },
-        onError: response => {
-            data.errors = response;                               
+        onError: errors => {
+            form.errors = errors;                               
         }
     });    
 }

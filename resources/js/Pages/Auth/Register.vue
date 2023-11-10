@@ -8,10 +8,6 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 
-defineProps({
-    fails: String
-});
-
 const data = reactive({
     profilePicture: null
 });

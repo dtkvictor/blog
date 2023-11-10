@@ -25,11 +25,15 @@ class PostController extends Controller
         }    
         $posts = new PostRepository(new Post());                
         $posts = $posts->filterBy($filters)
-                       ->where('user', auth()->user()->id)
+                       ->where('user', auth()->id())
                        ->with('user', 'category')
                        ->paginate(10)
                        ->onEachSide(1)
                        ->withQueryString();
+
+        $posts->each(function($post) {
+            $post->setUrlThumb();
+        });
                         
         return Inertia::render('Post/My', [
             'response' => $posts
@@ -58,6 +62,7 @@ class PostController extends Controller
             $post->user = $post->user()->first();
             $post->category = $post->category()->first();
             $post->preview();
+            $post->setUrlThumb();
         });
 
         return Inertia::render('Post/Index', [
@@ -95,21 +100,17 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {        
-        $request->validate([
+        $data = $request->validate([
             'title' => "required|string|max:500",
             'content' => "required|string",
             'category' => "required|exists:App\Models\Category,id",
             'thumb' => "required|image"
         ]);
 
-        $post = new Post();
-        $post->user = auth()->user()->id;
-        $post->title = $request->title;
-        $post->content = $request->content;
-        $post->thumb = $request->file('thumb')->store('posts/thumb');
-        $post->category = $request->category;
-        $post->save();
+        $data['user'] = auth()->id();
+        $data['thumb'] = $request->file('thumb')->store('posts/thumb');        
         
+        Post::create($data);
         Logs::create(Post::class, "Create new post");        
     }        
 
@@ -117,33 +118,32 @@ class PostController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, int $post)
-    {
+    {                                
         if(!$post = Post::find($post)) {
             return back()->withErrors(['erro' => 'Post not found']);
-        }        
+        }
 
         if($post->user != auth()->user()->id) {
             return back()->withErrors(['erro' => 'You do not have permission to update this post']);
-        }
+        }        
 
-        $request->validate([
+        $data = $request->validate([
             'title' => "required|string|max:500",
             'content' => "required|string",
             'category' => "required|exists:App\Models\Category,id",
             'thumb' => 'image|nullable'
-        ]);
-                
-        $data = $request->only(['title', 'content', 'category']);
+        ]);                    
 
         if($request->hasFile('thumb')) {
             if(Storage::exists($post->thumb)) {
                 Storage::delete($post->thumb);
-            } 
-            $data['thumb'] = $request->file('thumb')->store('posts/thumb');
-        }
+            }
+            $data['thumb'] = $request->file('thumb')->store('posts/thumb');            
+        }else {
+            $data['thumb'] = $post->thumb;
+        }    
 
         $post->fill($data)->save();
-
         Logs::update(Post::class, "Updated the id: $post->id post");        
     }
 
@@ -156,7 +156,7 @@ class PostController extends Controller
             return back()->withErrors(['erro' => 'Post not found']);
         }
 
-        if($post->user != auth()->user()->id) {
+        if($post->user != auth()->id()) {
             return back()->withErrors([
                 'erro' => 'You do not have permission to delete this post.'
             ]);

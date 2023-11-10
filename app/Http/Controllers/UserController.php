@@ -29,11 +29,15 @@ class UserController extends Controller
         
         $users = new UserRepository(new User());
         $users = $users->filterBy($filters)
-                       ->where('id', '!=', auth()->user()->id)
+                       ->where('id', '!=', auth()->id())
                        ->withCount(['post'])            
                        ->paginate(10)
                        ->onEachSide(1);
-
+        
+        $users->each(function($user) {
+            $user->setUrlPicture();
+        });
+            
         return Inertia::render('User/Index', [
             'response' => $users,
         ]);
@@ -58,7 +62,7 @@ class UserController extends Controller
             ]);
         }       
 
-        $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'admin' => 'required|boolean'
@@ -77,6 +81,9 @@ class UserController extends Controller
             return back()->withErrors([
                 'erro' => 'User not found'
             ]);
+        }
+        if(Storage::exists($user->picture)) { 
+            Storage::delete($user->picture);
         }
         $user->delete();
     }
